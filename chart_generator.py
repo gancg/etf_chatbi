@@ -206,6 +206,30 @@ class ChartGenerator:
             str: 图表文件路径
         """
         try:
+            import pandas as pd
+            
+            # 确保数据按日期升序排列
+            df_temp = pd.DataFrame({
+                'dates': dates,
+                'prices': prices,
+                'upper_band': upper_band,
+                'middle_band': middle_band,
+                'lower_band': lower_band
+            })
+            df_temp = df_temp.sort_values('dates', ascending=True)
+            
+            dates = df_temp['dates'].tolist()
+            prices = df_temp['prices'].tolist()
+            upper_band = df_temp['upper_band'].tolist()
+            middle_band = df_temp['middle_band'].tolist()
+            lower_band = df_temp['lower_band'].tolist()
+            
+            # 如果有信号点,也需要重新排序
+            if signals:
+                signals_df = pd.DataFrame(signals)
+                signals_df = signals_df.sort_values('date', ascending=True)
+                signals = signals_df.to_dict('records')
+            
             fig, ax = plt.subplots(figsize=(14, 7))
             
             # 价格曲线
@@ -217,7 +241,7 @@ class ChartGenerator:
             ax.plot(dates, lower_band, 'r--', linewidth=1.5, label='下轨')
             
             # 填充布林带区域
-            ax.fill_between(dates, upper_band, lower_band, alpha=0.1, color='gray')
+            ax.fill_between(range(len(dates)), upper_band, lower_band, alpha=0.1, color='gray')
             
             if signals:
                 overbought = [s for s in signals if s['type'] == 'overbought']
@@ -226,13 +250,15 @@ class ChartGenerator:
                 if overbought:
                     ob_dates = [s['date'] for s in overbought]
                     ob_prices = [s['price'] for s in overbought]
-                    ax.scatter(ob_dates, ob_prices, marker='v', color='red', 
+                    ob_indices = [dates.index(d) for d in ob_dates]
+                    ax.scatter(ob_indices, ob_prices, marker='v', color='red', 
                              s=100, label='超卖信号', zorder=5)
                 
                 if oversold:
                     os_dates = [s['date'] for s in oversold]
                     os_prices = [s['price'] for s in oversold]
-                    ax.scatter(os_dates, os_prices, marker='^', color='green', 
+                    os_indices = [dates.index(d) for d in os_dates]
+                    ax.scatter(os_indices, os_prices, marker='^', color='green', 
                              s=100, label='超买信号', zorder=5)
             
             ax.set_title(title, fontsize=14, fontweight='bold')
@@ -349,14 +375,14 @@ class ChartGenerator:
             # 周季节性
             ax2.plot(dates, weekly, 'g-', linewidth=2)
             ax2.set_title('周季节性 (Weekly)', fontsize=12, fontweight='bold')
-            ax2.set_ylabel('值', fontsize=10)
+            ax2.set_ylabel('값', fontsize=10)
             ax2.grid(True, alpha=0.3)
             
             # 年季节性
             ax3.plot(dates, yearly, 'r-', linewidth=2)
             ax3.set_title('年季节性 (Yearly)', fontsize=12, fontweight='bold')
             ax3.set_xlabel('日期', fontsize=10)
-            ax3.set_ylabel('值', fontsize=10)
+            ax3.set_ylabel('값', fontsize=10)
             ax3.grid(True, alpha=0.3)
             
             plt.suptitle(title, fontsize=14, fontweight='bold', y=1.02)

@@ -84,19 +84,21 @@ def main():
     agent = init_agent()
     
     # 配置聊天建议
-    suggestions = [
-        "查询科创芯片ETF最近一个月的收盘价",
-        "对有色金属ETF进行MACD分析",
-        "分析科创AIETF的布林带",
-        "预测工业软件ETF未来7天价格",
-        "分析电力ETF的趋势和周期性"
-    ]
+    chatbot_config = {
+        'prompt.suggestions': [
+            "查询科创芯片ETF最近一个月的收盘价",
+            "对有色金属ETF进行MACD分析",
+            "分析科创AIETF的布林带",
+            "预测工业软件ETF未来7天价格",
+            "分析电力ETF的趋势和周期性"
+        ]
+    }
     
     # 启动Web UI
     print("\n正在启动Web UI...")
     print("请在浏览器中访问: http://localhost:7860\n")
     
-    bot = WebUI(agent)
+    bot = WebUI(agent, chatbot_config=chatbot_config)
     bot.run()
 
 
